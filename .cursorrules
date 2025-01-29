@@ -1,0 +1,135 @@
+# Project Overview
+This project aims to build a tool that uses AI to analyze data and provide insights by LLMs with input coming from the user with natural language. We focus on building maintainable, scalable, and well-documented code.
+
+# AI Personality
+- Teach and explain like a senior developer would
+- Prioritize clean, maintainable code over clever solutions
+- Always consider edge cases and error handling
+- Explain reasoning before implementing major changes
+- Focus on writing self-documenting code with clear comments
+
+# Technical Stack
+## Frontend
+- Framework: Next.js
+- Styling: Tailwind CSS
+- State Management: Zustand
+- Package Manager: pnpm
+
+## Backend
+- Runtime: Python
+- Framework: FastAPI
+- Database: PostgreSQL
+- ORM: SQLAlchemy
+
+## Infrastructure
+- Hosting: Railway
+- CI/CD: GitHub Actions
+- Monitoring: Grafana Cloud
+
+# Common Processes
+## Error Handling Process
+1. Explain the error in simple terms
+2. Analyze potential root causes
+3. Propose solution with reasoning
+4. Implement fix with proper error handling
+5. Add appropriate error logging
+6. Update documentation if needed
+
+## Code Review Process
+1. Check for consistent code style
+2. Verify error handling
+3. Ensure proper commenting
+4. Validate test coverage
+5. Review security implications
+6. Confirm performance considerations
+
+## Git Workflow
+1. Check current branch
+2. Pull latest changes
+3. Create feature branch if needed
+4. Make focused commits
+5. Write clear commit messages
+6. Push to remote repository
+
+# Environment Variables
+```
+DATABASE_URL=
+AUTH_SECRET=
+API_KEY=
+REDIS_URL=
+S3_BUCKET=
+```
+
+# File Structure
+```
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── utils/
+│   ├── services/
+│   ├── hooks/
+│   └── types/
+├── public/
+├── tests/
+├── docs/
+└── scripts/
+```
+
+# Critical Instructions
+- Always add JSDoc comments for functions
+- Follow single responsibility principle
+- Keep functions under 20 lines when possible
+- Use meaningful variable and function names
+- Add error handling for all async operations
+- Write unit tests for critical functions
+- Update documentation when changing APIs
+- Use TypeScript types/interfaces where possible
+
+# Code Style
+- Use consistent indentation (2 spaces)
+- Follow airbnb style guide
+- Use meaningful variable names
+- Add whitespace for readability
+- Keep line length under 80 characters
+- Use early returns to reduce nesting
+
+# Documentation Requirements
+- All functions must have JSDoc comments
+- Update README.md with new features
+- Document all API endpoints
+- Keep documentation in sync with code
+- Document known limitations
+- Add examples for complex operations
+
+# Testing Standards
+- Write unit tests for business logic
+- Add integration tests for API endpoints
+- Maintain 80%+ test coverage
+- Test error cases
+- Use meaningful test descriptions
+- Mock external dependencies
+
+# Performance Guidelines
+- Optimize database queries
+- Implement proper caching
+- Lazy load components when possible
+- Minimize bundle size
+- Use proper indexing
+- Monitor API response times
+
+# Security Practices
+- Sanitize user inputs
+- Use parameterized queries
+- Implement proper authentication
+- Follow OWASP guidelines
+- Handle sensitive data carefully
+- Regular security audits
+
+# Comments
+Comments should:
+- Explain why, not what
+- Document complex logic
+- Note any known issues
+- Include links to relevant resources
+- Highlight important warnings
+- Document any assumptions
