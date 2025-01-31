@@ -1,6 +1,7 @@
 """Health check endpoints."""
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import text
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -25,9 +26,11 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> HealthResponse:
     """
     try:
         # Verify database connection
-        await db.execute("SELECT 1")
-        db_connected = True
-    except Exception:
+        result = await db.execute(text("SELECT 1"))
+        await db.commit()
+        db_connected = result.scalar() == 1
+    except Exception as e:
+        print(f"Database connection error: {str(e)}")
         db_connected = False
     
     return HealthResponse(

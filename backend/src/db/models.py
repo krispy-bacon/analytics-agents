@@ -1,111 +1,59 @@
 """Database models."""
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import String, DateTime, ForeignKey, JSON, Enum as SQLEnum
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-import enum
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON
+from sqlalchemy.orm import relationship, declarative_base
 
-class Base(DeclarativeBase):
-    """Base class for all models."""
-    pass
-
-class DatasetType(str, enum.Enum):
-    """Dataset types enumeration."""
-    CSV = "csv"
-    JSON = "json"
-    SQL = "sql"
-    API = "api"
-
-class AnalysisStatus(str, enum.Enum):
-    """Analysis status enumeration."""
-    PENDING = "pending"
-    PROCESSING = "processing"
-    COMPLETED = "completed"
-    FAILED = "failed"
-
-class User(Base):
-    """User model."""
-    __tablename__ = "users"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
-    hashed_password: Mapped[str] = mapped_column(String(255))
-    full_name: Mapped[str] = mapped_column(String(255))
-    is_active: Mapped[bool] = mapped_column(default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, 
-        default=datetime.utcnow, 
-        onupdate=datetime.utcnow
-    )
-
-    # Relationships
-    datasets: Mapped[list["Dataset"]] = relationship(back_populates="user")
-    analyses: Mapped[list["Analysis"]] = relationship(back_populates="user")
+Base = declarative_base()
 
 class Dataset(Base):
-    """Dataset model."""
+    """Dataset model for storing metadata about uploaded datasets."""
     __tablename__ = "datasets"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(255))
-    description: Mapped[Optional[str]] = mapped_column(String(1000))
-    type: Mapped[DatasetType] = mapped_column(SQLEnum(DatasetType))
-    source_path: Mapped[str] = mapped_column(String(1000))
-    dataset_metadata: Mapped[Optional[dict]] = mapped_column(JSON)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, 
-        default=datetime.utcnow, 
-        onupdate=datetime.utcnow
-    )
-
-    # Foreign keys
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    file_type = Column(String, nullable=False)  # csv, excel, json
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    schema = Column(JSON, nullable=True)  # Store column names, types, and metadata
+    row_count = Column(Integer, nullable=True)
+    file_size = Column(Integer, nullable=True)  # in bytes
+    status = Column(String, nullable=False, default="pending")  # pending, processing, ready, error
+    error_message = Column(String, nullable=True)
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="datasets")
-    analyses: Mapped[list["Analysis"]] = relationship(back_populates="dataset")
+    data_points = relationship("DataPoint", back_populates="dataset", cascade="all, delete-orphan")
+    upload_sessions = relationship("UploadSession", back_populates="dataset", cascade="all, delete-orphan")
 
-class Analysis(Base):
-    """Analysis model."""
-    __tablename__ = "analyses"
+class DataPoint(Base):
+    """Model for storing individual data points from datasets."""
+    __tablename__ = "data_points"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(255))
-    description: Mapped[Optional[str]] = mapped_column(String(1000))
-    status: Mapped[AnalysisStatus] = mapped_column(
-        SQLEnum(AnalysisStatus),
-        default=AnalysisStatus.PENDING
-    )
-    parameters: Mapped[Optional[dict]] = mapped_column(JSON)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, 
-        default=datetime.utcnow, 
-        onupdate=datetime.utcnow
-    )
-
-    # Foreign keys
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    dataset_id: Mapped[int] = mapped_column(ForeignKey("datasets.id"))
+    id = Column(Integer, primary_key=True, index=True)
+    dataset_id = Column(Integer, ForeignKey("datasets.id", ondelete="CASCADE"), nullable=False)
+    row_index = Column(Integer, nullable=False)
+    data = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="analyses")
-    dataset: Mapped["Dataset"] = relationship(back_populates="analyses")
-    results: Mapped[list["Result"]] = relationship(back_populates="analysis")
+    dataset = relationship("Dataset", back_populates="data_points")
 
-class Result(Base):
-    """Analysis result model."""
-    __tablename__ = "results"
+class UploadSession(Base):
+    """Model for tracking file upload sessions."""
+    __tablename__ = "upload_sessions"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    output: Mapped[dict] = mapped_column(JSON)
-    metrics: Mapped[Optional[dict]] = mapped_column(JSON)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-    # Foreign keys
-    analysis_id: Mapped[int] = mapped_column(ForeignKey("analyses.id"))
+    id = Column(Integer, primary_key=True, index=True)
+    dataset_id = Column(Integer, ForeignKey("datasets.id", ondelete="CASCADE"), nullable=False)
+    filename = Column(String, nullable=False)
+    content_type = Column(String, nullable=False)
+    total_chunks = Column(Integer, nullable=True)
+    chunks_received = Column(Integer, default=0, nullable=False)
+    status = Column(String, nullable=False, default="uploading")  # uploading, completed, failed
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    error_message = Column(String, nullable=True)
 
     # Relationships
-    analysis: Mapped["Analysis"] = relationship(back_populates="results")
+    dataset = relationship("Dataset", back_populates="upload_sessions")

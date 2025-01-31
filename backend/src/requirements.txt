@@ -17,6 +17,11 @@ python-dotenv==1.0.1
 pydantic==2.6.1
 pydantic-settings==2.1.0
 
+# Data processing
+pandas==2.2.0
+openpyxl==3.1.2  # For Excel support
+pyarrow==15.0.0  # For better pandas performance
+
 # Utilities
 python-dateutil==2.8.2
 pytz==2024.1
