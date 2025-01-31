@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-ai_analytics}
+      - SECRET_KEY=${SECRET_KEY:-development-secret-key}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./src:/app
+    networks:
+      - analytics-network
+
+  db:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-ai_analytics}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - analytics-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  analytics-network:
+    driver: bridge
+
+volumes:
+  postgres_data: 
